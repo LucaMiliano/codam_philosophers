@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:41:36 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/07 13:57:23 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/14 17:53:43 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ long	ft_atoi_safe(const char *nptr)
 			sign = -1;
 		i++;
 	}
-	while (ft_isdigit(nptr[i]))
+	while (nptr[i])
 	{
 		result = result * 10 + (nptr[i] - '0');
 		if (result > INT_MAX)
@@ -40,18 +40,39 @@ long	ft_atoi_safe(const char *nptr)
 	return (result * sign);
 }
 
-int	ft_isdigit(int c)
+int	ft_isdigit(char *str)
 {
-	if (c >= '0' && c <= '9')
-		return (1);
-	else
-		return (0);
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return (0);
+		i++;
+	}
+	return (1);
 }
 
 long	time_in_ms(void)
 {
-	struct	timeval	tv;
+	struct timeval	tv;
 
 	gettimeofday(&tv, NULL);
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+}
+
+void	print_status(t_philo *philo, char *msg)
+{
+	pthread_mutex_lock(&philo->data->print_mutex);
+	printf("%ld %d %s\n", time_in_ms(), philo->id, msg);
+	pthread_mutex_unlock(&philo->data->print_mutex);
+}
+
+void	free_all_data(t_data *data)
+{
+	if (data->forks)
+		free(data->forks);
+	if (data->threads)
+		free(data->threads);
 }
