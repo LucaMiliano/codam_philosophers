@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "philosophers.h"
+#include <pthread.h>
 
 //check for max value for time_to_X?
 bool	init_args(int argc, char **argv, t_data *data)
@@ -19,8 +20,8 @@ bool	init_args(int argc, char **argv, t_data *data)
 
 	i = 1;
 	if (argc < 5 || argc > 6)
-		return (printf("Unable to run, wrong amount of args.\n"), false);
-	while (argv)
+	return (printf("Unable to run, wrong amount of args.\n"), false);
+	while (i < argc)
 	{
 		if (!ft_isdigit(argv[i]))
 			return (printf("Only (positive) nums are valid inputs.\n"), false);
@@ -29,9 +30,13 @@ bool	init_args(int argc, char **argv, t_data *data)
 		i++;
 	}
 	data->nb_philo = ft_atoi_safe(argv[1]);
+	if (data->nb_philo < 1 || data->nb_philo > 200)
+		return (false);
 	data->time_to_die = ft_atoi_safe(argv[2]);
 	data->time_to_eat = ft_atoi_safe(argv[3]);
 	data->time_to_sleep = ft_atoi_safe(argv[4]);
+	data->must_eat = -1;
+	data->start_time = time_in_ms();
 	if (argc == 6)
 		data->must_eat = ft_atoi_safe(argv[5]);
 	return (true);
@@ -44,12 +49,13 @@ bool	init_threads(t_data *data)
 	i = 0;
 	while (i < data->nb_philo)
 	{
-		data->philos[i].id = i;
+		data->philos[i].id = i + 1;
 		data->philos[i].data = data;
 		if (pthread_create(&data->threads[i], NULL,
-				eat_sleep_think, &data->philos) != 0)
+				eat_sleep_think, &data->philos[i]) != 0)
 			return (false);
 		i++;
+		printf("thread %d init\n", i);
 	}
 	return (true);
 }
@@ -88,6 +94,7 @@ bool	init_forks(t_data *data)
 		}
 		i++;
 	}
+	printf("forks init\n");
 	return (true);
 }
 
@@ -112,6 +119,7 @@ bool	init_meals(t_data *data)
 		}
 		i++;
 	}
+	printf("meals init\n");
 	return (true);
 }
 
@@ -141,25 +149,28 @@ bool	init_mutexes(t_data *data)
 		}
 		return (false);
 	}
+	printf("mutexes init\n");
 	return (true);
 }
 
 
 bool	init_monitor(t_data *data)
 {
-	if ((pthread_create(&data->monitor, NULL, monitor(data), &data)) != 0)
+	if ((pthread_create(&data->monitor, NULL, monitor, data)) != 0)
 		return (false);
+	printf("monitor init\n");
 	return (true);
 }
 
 bool	memory_allocation(t_data *data)
 {
+	printf("Num of philos: %d.\n", data->nb_philo);
 	data->forks = malloc(sizeof(pthread_mutex_t) * data->nb_philo);
 	data->threads = malloc(sizeof(pthread_t) * data->nb_philo);
 	data->philos = malloc (sizeof(t_philo) * data->nb_philo);
-	if (!data->forks || !data->threads || data->philos)
-		return (free_all_data(data), false);
-	return (true);
+	if (!data->forks || !data->threads || !data->philos)
+		return (printf("mem fail\n"), free_all_data(data), false);
+	return (printf("mem allocated\n"), true);
 }
 
 

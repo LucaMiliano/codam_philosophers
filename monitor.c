@@ -27,6 +27,8 @@ void	*monitor(void *arg)
 			pthread_mutex_lock(&data->philos[i].meal_mutex);
 			elapsed = time_in_ms() - data->philos[i].last_meal_time;
 			pthread_mutex_unlock(&data->philos[i].meal_mutex);
+			if (data->must_eat > 0 && data->philos[i].meals_eaten >= data->must_eat)
+				return (NULL);
 			if (elapsed > data->time_to_die)
 			{
 				philo_kill(&data->philos[i], data);
@@ -34,17 +36,17 @@ void	*monitor(void *arg)
 			}
 			i++;
 		}
-		usleep(250);
+		usleep(100);
 	}
 }
 
 void	philo_kill(t_philo *philo, t_data *data)
 {
 	pthread_mutex_lock(&data->dead_mutex);
-	if (!philo->dead)
+	if (!data->dead)
 	{
-		philo->dead = true;
 		print_status(philo, " died");
+		data->dead = true;
 	}
 	pthread_mutex_unlock(&data->dead_mutex);
 }

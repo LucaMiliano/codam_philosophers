@@ -28,6 +28,7 @@ int	main(int argc, char **argv)
 	init_monitor(&data);
 	join_threads(&data);
 	destroy_mutexes(&data);
+	free_all_data(&data);
 	return (0);
 }
 
@@ -37,13 +38,17 @@ void	*eat_sleep_think(void *arg)
 
 	philo = (t_philo *)arg;
 	philo->last_meal_time = time_in_ms();
-	philo->dead = false;
+	philo->data->dead = false;
 	philo->fork_right = philo->data->forks[philo->id - 1];
 	philo->fork_left = philo->data->forks[philo->id];
 	if (philo->id == philo->data->nb_philo)
 		philo->fork_left = philo->data->forks[0];
-	while (!philo->dead)
+	while (1)
 	{
+		pthread_mutex_lock(&philo->data->dead_mutex);
+		if (philo->data->dead)
+			break;
+		pthread_mutex_unlock(&philo->data->dead_mutex);
 		philo_eat(philo);
 		philo_sleep(philo);
 		philo_think(philo);
@@ -56,29 +61,31 @@ void	philo_eat(t_philo *philo)
 	if (philo->id % 2 != 0)
 	{
 		pthread_mutex_lock(&philo->fork_right);
-		printf("%ld %d has taken a fork\n", time_in_ms(), philo->id);
+		print_status(philo, " has taken a fork");
 		pthread_mutex_lock(&philo->fork_left);
-		printf("%ld %d has taken a fork\n", time_in_ms(), philo->id);
+		print_status(philo, " has taken a fork");
 	}
 	else
 	{
 		pthread_mutex_lock(&philo->fork_left);
-		printf("%ld %d has taken a fork\n", time_in_ms(), philo->id);
+		print_status(philo, " has taken a fork");
 		pthread_mutex_lock(&philo->fork_right);
-		printf("%ld %d has taken a fork\n", time_in_ms(), philo->id);
+		print_status(philo, " has taken a fork");
 	}
-	printf("%ld %d is eating\n", time_in_ms(), philo->id);
+	print_status(philo, " is eating");
 	philo->meals_eaten++;
 	usleep(philo->data->time_to_eat * 1000);
+	pthread_mutex_unlock(&philo->fork_left);
+	pthread_mutex_unlock(&philo->fork_right);
 }
 
 void	philo_sleep(t_philo *philo)
 {
-	printf("%ld %d is sleeping\n", time_in_ms(), philo->id);
+	print_status(philo, " is sleeping");
 	usleep(philo->data->time_to_sleep * 1000);
 }
 
 void	philo_think(t_philo *philo)
 {
-	printf("%ld %d is thinking\n", time_in_ms(), philo->id);
+	print_status(philo, " is thinking");
 }
