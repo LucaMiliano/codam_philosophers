@@ -46,8 +46,8 @@ struct s_philo
 	int				id;
 	long			last_meal_time;
 	pthread_mutex_t	meal_mutex;
-	pthread_mutex_t	fork_left;
-	pthread_mutex_t	fork_right;
+	// pthread_mutex_t	fork_left;
+	// pthread_mutex_t	fork_right;
 	int				meals_eaten;
 	t_data			*data;
 }	;
