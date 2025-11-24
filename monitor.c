@@ -14,27 +14,34 @@
 
 void	*monitor(void *arg)
 {
-	t_data	*data;
-	int		i;
-	long	elapsed;
+	t_data		*data;
+	int			i;
+	long		elapsed;
+	int			all_eaten;
 
 	data = arg;
+	all_eaten = 0;
 	while (1)
 	{
 		i = 0;
+		all_eaten = 0;
 		while (i < data->nb_philo)
 		{
 			pthread_mutex_lock(&data->philos[i].meal_mutex);
 			elapsed = time_in_ms() - data->philos[i].last_meal_time;
-			pthread_mutex_unlock(&data->philos[i].meal_mutex);
 			if (data->must_eat > 0 && data->philos[i].meals_eaten >= data->must_eat)
-				return (NULL);
+			all_eaten++;
 			if (elapsed > data->time_to_die)
-			{
-				philo_kill(&data->philos[i], data);
-				return (NULL);
-			}
+			return (pthread_mutex_unlock(&data->philos[i].meal_mutex), philo_kill(&data->philos[i], data), NULL);
+			pthread_mutex_unlock(&data->philos[i].meal_mutex);
 			i++;
+		}
+		if (data->must_eat > 0 && all_eaten == data->nb_philo)
+		{
+			pthread_mutex_lock(&data->dead_mutex);
+			data->dead = true;
+			pthread_mutex_unlock(&data->dead_mutex);
+			return (NULL);
 		}
 		usleep(100);
 	}

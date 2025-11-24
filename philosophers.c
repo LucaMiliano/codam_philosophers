@@ -37,7 +37,6 @@ void	*eat_sleep_think(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	philo->last_meal_time = time_in_ms();
 	while (1)
 	{
 		pthread_mutex_lock(&philo->data->dead_mutex);
@@ -73,8 +72,11 @@ void	philo_eat(t_philo *philo)
 		print_status(philo, " has taken a fork");
 	}
 	print_status(philo, " is eating");
+	pthread_mutex_lock(&philo->meal_mutex);
 	philo->meals_eaten++;
+	philo->last_meal_time = time_in_ms();
 	usleep(philo->data->time_to_eat * 1000);
+	pthread_mutex_unlock(&philo->meal_mutex);
 	pthread_mutex_unlock(&philo->data->forks[left]);
 	pthread_mutex_unlock(&philo->data->forks[right]);
 }

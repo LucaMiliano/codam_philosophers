@@ -64,10 +64,10 @@ long	time_in_ms(void)
 
 void	print_status(t_philo *philo, char *msg)
 {
-	// pthread_mutex_lock(&philo->data->dead_mutex);
-	// 	if (philo->data->dead)
-	// 		return ;
-	// pthread_mutex_unlock(&philo->data->dead_mutex);
+	pthread_mutex_lock(&philo->data->dead_mutex);
+		if (philo->data->dead)
+			return ;
+	pthread_mutex_unlock(&philo->data->dead_mutex);
 	pthread_mutex_lock(&philo->data->print_mutex);
 	printf("%ld %d %s\n", time_in_ms() - philo->data->start_time, philo->id, msg);
 	pthread_mutex_unlock(&philo->data->print_mutex);

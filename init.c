@@ -52,6 +52,8 @@ bool	init_threads(t_data *data)
 	{
 		data->philos[i].id = i + 1;
 		data->philos[i].data = data;
+		data->philos[i].last_meal_time = data->start_time;
+		data->philos[i].meals_eaten = 0;
 		if (pthread_create(&data->threads[i], NULL,
 				eat_sleep_think, &data->philos[i]) != 0)
 			return (false);
