@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:04:41 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:44:47 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/25 15:03:58 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ int	main(int argc, char **argv)
 	init_threads(&data);
 	init_monitor(&data);
 	join_threads(&data);
+	all_ready = 1;
 	destroy_mutexes(&data);
 	free_all_data(&data);
 	return (0);
@@ -37,26 +38,26 @@ void	*eat_sleep_think(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
+	pthread_mutex_lock(&philo->data->all_ready);
+	while (!get_long(philo))
+		usleep(1);
 	while (1)
 	{
-		pthread_mutex_lock(&philo->data->dead_mutex);
-		if (philo->data->dead)
-			break;
-		pthread_mutex_unlock(&philo->data->dead_mutex);
-		philo_eat(philo);
+		if (!philo_eat(philo))
+			break ;
 		philo_sleep(philo);
 		philo_think(philo);
 	}
 	return (NULL);
 }
 
-void	philo_eat(t_philo *philo)
+bool	philo_eat(t_philo *philo)
 {
 	int	left;
 	int	right;
 
-	left = philo->id - 1;
-	right = philo->id % philo->data->nb_philo;
+	right = philo->id - 1;
+	left = philo->id % philo->data->nb_philo;
 	if (philo->id % 2 != 0)
 	{
 		pthread_mutex_lock(&philo->data->forks[right]);
@@ -74,20 +75,20 @@ void	philo_eat(t_philo *philo)
 	print_status(philo, " is eating");
 	pthread_mutex_lock(&philo->meal_mutex);
 	philo->meals_eaten++;
-	philo->last_meal_time = time_in_ms();
 	usleep(philo->data->time_to_eat * 1000);
+	philo->last_meal_time = time_in_ms();
 	pthread_mutex_unlock(&philo->meal_mutex);
 	pthread_mutex_unlock(&philo->data->forks[left]);
 	pthread_mutex_unlock(&philo->data->forks[right]);
 }
 
-void	philo_sleep(t_philo *philo)
+bool	philo_sleep(t_philo *philo)
 {
 	print_status(philo, " is sleeping");
 	usleep(philo->data->time_to_sleep * 1000);
 }
 
-void	philo_think(t_philo *philo)
+bool	philo_think(t_philo *philo)
 {
 	print_status(philo, " is thinking");
 }

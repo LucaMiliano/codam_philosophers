@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:37:06 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:32:56 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/25 14:07:02 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@ void	*monitor(void *arg)
 
 	data = arg;
 	all_eaten = 0;
+	while (!all_threads_ready)
+		usleep(1);
 	while (1)
 	{
 		i = 0;
@@ -30,9 +32,9 @@ void	*monitor(void *arg)
 			pthread_mutex_lock(&data->philos[i].meal_mutex);
 			elapsed = time_in_ms() - data->philos[i].last_meal_time;
 			if (data->must_eat > 0 && data->philos[i].meals_eaten >= data->must_eat)
-			all_eaten++;
+				all_eaten++;
 			if (elapsed > data->time_to_die)
-			return (pthread_mutex_unlock(&data->philos[i].meal_mutex), philo_kill(&data->philos[i], data), NULL);
+				return (pthread_mutex_unlock(&data->philos[i].meal_mutex), philo_kill(&data->philos[i], data), NULL);
 			pthread_mutex_unlock(&data->philos[i].meal_mutex);
 			i++;
 		}

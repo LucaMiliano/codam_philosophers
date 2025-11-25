@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 14:09:56 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:50:50 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/25 15:01:28 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ bool	init_args(int argc, char **argv, t_data *data)
 
 	i = 1;
 	if (argc < 5 || argc > 6)
-	return (printf("Unable to run, wrong amount of args.\n"), false);
+		return (printf("Unable to run, wrong amount of args.\n"), false);
 	while (i < argc)
 	{
 		if (!ft_isdigit(argv[i]))
@@ -36,7 +36,6 @@ bool	init_args(int argc, char **argv, t_data *data)
 	data->time_to_eat = ft_atoi_safe(argv[3]);
 	data->time_to_sleep = ft_atoi_safe(argv[4]);
 	data->must_eat = -1;
-	data->start_time = time_in_ms();
 	data->dead = false;
 	if (argc == 6)
 		data->must_eat = ft_atoi_safe(argv[5]);
@@ -48,17 +47,20 @@ bool	init_threads(t_data *data)
 	int	i;
 
 	i = 0;
+	data->all_ready = false;
 	while (i < data->nb_philo)
 	{
 		data->philos[i].id = i + 1;
 		data->philos[i].data = data;
-		data->philos[i].last_meal_time = data->start_time;
+		// data->philos[i].last_meal_time = data->start_time;
 		data->philos[i].meals_eaten = 0;
 		if (pthread_create(&data->threads[i], NULL,
 				eat_sleep_think, &data->philos[i]) != 0)
 			return (false);
 		i++;
 	}
+	data->start_time = time_in_ms();
+	data->all_ready = true;
 	return (true);
 }
 

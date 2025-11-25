@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:05:42 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:51:51 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/25 13:53:45 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,9 +65,9 @@ void	philo_kill(t_philo *philo, t_data *data);
 void	*monitor(void *arg);
 void	free_all_data(t_data *data);
 void	destroy_mutexes(t_data *data);
-void	philo_eat(t_philo *philo);
-void	philo_sleep(t_philo *philo);
-void	philo_think(t_philo *philo);
+bool	philo_eat(t_philo *philo);
+bool	philo_sleep(t_philo *philo);
+bool	philo_think(t_philo *philo);
 bool	memory_allocation(t_data *data);
 void	join_threads(t_data *data);
 void	print_status(t_philo *philo, char *msg);

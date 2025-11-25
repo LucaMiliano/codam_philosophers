@@ -1,7 +1,7 @@
 NAME = philosophers
 
 CC = cc
-CFLAGS = -Wall -Wextra -Werror -g
+CFLAGS = -Wall -Wextra -Werror -g -fsanitize=thread
 
 SRCS =	philosophers.c \
 		init.c \

@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:41:36 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:53:43 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/25 13:56:29 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,4 +81,12 @@ void	free_all_data(t_data *data)
 		free(data->threads);
 	if (data->philos)
 		free(data->philos);
+}
+
+bool	check_if_alive(t_data *data)
+{
+	pthread_mutex_lock(&data->dead_mutex);
+	if (data->dead)
+		return (pthread_mutex_unlock(&data->dead_mutex), false);
+	pthread_mutex_unlock(&philo->data->dead_mutex);
 }
