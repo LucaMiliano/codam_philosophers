@@ -62,11 +62,15 @@ long	time_in_ms(void)
 	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
 }
 
+//change to ft_strcmp
 void	print_status(t_philo *philo, char *msg)
 {
 	pthread_mutex_lock(&philo->data->dead_mutex);
-		if (philo->data->dead)
-			return ;
+	if (philo->data->dead && strcmp(msg, " died") != 0)
+	{
+		pthread_mutex_unlock(&philo->data->dead_mutex);
+		return ;
+	}
 	pthread_mutex_unlock(&philo->data->dead_mutex);
 	pthread_mutex_lock(&philo->data->print_mutex);
 	printf("%ld %d %s\n", time_in_ms() - philo->data->start_time, philo->id, msg);
@@ -76,11 +80,20 @@ void	print_status(t_philo *philo, char *msg)
 void	free_all_data(t_data *data)
 {
 	if (data->forks)
+	{
 		free(data->forks);
+		data->forks = NULL;
+	}
 	if (data->threads)
+	{
 		free(data->threads);
+		data->threads = NULL;
+	}
 	if (data->philos)
+	{
 		free(data->philos);
+		data->threads = NULL;
+	}
 }
 
 bool	check_if_alive(t_data *data)
@@ -88,5 +101,6 @@ bool	check_if_alive(t_data *data)
 	pthread_mutex_lock(&data->dead_mutex);
 	if (data->dead)
 		return (pthread_mutex_unlock(&data->dead_mutex), false);
-	pthread_mutex_unlock(&philo->data->dead_mutex);
+	pthread_mutex_unlock(&data->dead_mutex);
+	return (true);
 }

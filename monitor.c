@@ -21,8 +21,17 @@ void	*monitor(void *arg)
 
 	data = arg;
 	all_eaten = 0;
-	while (!all_threads_ready)
-		usleep(1);
+	while (1)
+	{
+		pthread_mutex_lock(&data->ready_mutex);
+		if (data->all_ready == true)
+		{
+			pthread_mutex_unlock(&data->ready_mutex);
+			break ;
+		}
+		pthread_mutex_unlock(&data->ready_mutex);
+		usleep(1000);
+	}
 	while (1)
 	{
 		i = 0;
@@ -47,6 +56,7 @@ void	*monitor(void *arg)
 		}
 		usleep(100);
 	}
+	return (NULL);
 }
 
 void	philo_kill(t_philo *philo, t_data *data)

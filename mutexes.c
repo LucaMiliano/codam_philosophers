@@ -12,24 +12,28 @@
 
 #include "philosophers.h"
 
+//needs to be protected against undefined behaviour
 void	destroy_mutexes(t_data *data)
 {
 	int	i;
-	int	j;
+	int j;
 
 	i = 0;
 	j = 0;
-	pthread_mutex_destroy(&data->dead_mutex);
-	pthread_mutex_destroy(&data->print_mutex);
-	while (i < data->nb_philo)
+	if (data->dead_mx_init == true)
+		pthread_mutex_destroy(&data->dead_mutex);
+	if (data->print_mx_init == true)
+		pthread_mutex_destroy(&data->print_mutex);
+	if (data->ready_mx_init == true)
+		pthread_mutex_destroy(&data->ready_mutex);
+	while (i < data->forks_mx_count)
 	{
 		pthread_mutex_destroy(&data->forks[i]);
 		i++;
 	}
-	while (j < data->nb_philo)
+	while (j < data->meal_mx_count)
 	{
 		pthread_mutex_destroy(&data->philos[j].meal_mutex);
 		j++;
 	}
-	return ;
 }

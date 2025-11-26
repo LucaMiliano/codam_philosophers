@@ -32,13 +32,20 @@ typedef struct s_data
 	int				time_to_sleep;
 	int				must_eat;
 	bool			dead;
+	bool			all_ready;
 	long			start_time;
 	t_philo			*philos;
 	pthread_mutex_t	*forks;
+	int				forks_mx_count;
 	pthread_t		*threads;
 	pthread_mutex_t	print_mutex;
+	bool			print_mx_init;
 	pthread_mutex_t	dead_mutex;
+	bool			dead_mx_init;
+	pthread_mutex_t	ready_mutex;
+	bool			ready_mx_init;
 	pthread_t		monitor;
+	int				meal_mx_count;
 }	t_data;
 
 struct s_philo
@@ -46,8 +53,6 @@ struct s_philo
 	int				id;
 	long			last_meal_time;
 	pthread_mutex_t	meal_mutex;
-	// pthread_mutex_t	fork_left;
-	// pthread_mutex_t	fork_right;
 	int				meals_eaten;
 	t_data			*data;
 }	;
@@ -65,11 +70,12 @@ void	philo_kill(t_philo *philo, t_data *data);
 void	*monitor(void *arg);
 void	free_all_data(t_data *data);
 void	destroy_mutexes(t_data *data);
-bool	philo_eat(t_philo *philo);
-bool	philo_sleep(t_philo *philo);
-bool	philo_think(t_philo *philo);
-bool	memory_allocation(t_data *data);
+void	philo_eat(t_philo *philo);
+void	philo_sleep(t_philo *philo);
+void	philo_think(t_philo *philo);
+bool	memory_allocation(t_data *data, int nb_philo);
 void	join_threads(t_data *data);
 void	print_status(t_philo *philo, char *msg);
+bool	check_if_alive(t_data *data);
 
 #endif

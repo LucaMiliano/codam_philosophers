@@ -22,15 +22,22 @@ int	main(int argc, char **argv)
 
 	if (!init_args(argc, argv, &data))
 		return (1);
-	memory_allocation(&data);
 	init_mutexes(&data);
 	init_threads(&data);
 	init_monitor(&data);
 	join_threads(&data);
-	all_ready = 1;
 	destroy_mutexes(&data);
 	free_all_data(&data);
 	return (0);
+}
+
+bool	ready_to_go(t_philo *philo)
+{
+	bool	ready;
+	pthread_mutex_lock(&philo->data->ready_mutex);
+	ready = philo->data->all_ready;
+	pthread_mutex_unlock(&philo->data->ready_mutex);
+	return (ready);
 }
 
 void	*eat_sleep_think(void *arg)
@@ -38,12 +45,16 @@ void	*eat_sleep_think(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	pthread_mutex_lock(&philo->data->all_ready);
-	while (!get_long(philo))
-		usleep(1);
+	while (!ready_to_go(philo))
+		usleep(100);
+	if (philo->id % 2 == 0)
+		usleep(1000);
 	while (1)
 	{
-		if (!philo_eat(philo))
+		if (!check_if_alive(philo->data))
+			break ;
+		philo_eat(philo);
+		if (!check_if_alive(philo->data))
 			break ;
 		philo_sleep(philo);
 		philo_think(philo);
@@ -51,14 +62,14 @@ void	*eat_sleep_think(void *arg)
 	return (NULL);
 }
 
-bool	philo_eat(t_philo *philo)
+void	philo_eat(t_philo *philo)
 {
 	int	left;
 	int	right;
 
 	right = philo->id - 1;
 	left = philo->id % philo->data->nb_philo;
-	if (philo->id % 2 != 0)
+	if (left > right)
 	{
 		pthread_mutex_lock(&philo->data->forks[right]);
 		print_status(philo, " has taken a fork");
@@ -82,13 +93,13 @@ bool	philo_eat(t_philo *philo)
 	pthread_mutex_unlock(&philo->data->forks[right]);
 }
 
-bool	philo_sleep(t_philo *philo)
+void	philo_sleep(t_philo *philo)
 {
 	print_status(philo, " is sleeping");
 	usleep(philo->data->time_to_sleep * 1000);
 }
 
-bool	philo_think(t_philo *philo)
+void	philo_think(t_philo *philo)
 {
 	print_status(philo, " is thinking");
 }

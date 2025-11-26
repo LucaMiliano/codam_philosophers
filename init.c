@@ -32,11 +32,11 @@ bool	init_args(int argc, char **argv, t_data *data)
 	data->nb_philo = ft_atoi_safe(argv[1]);
 	if (data->nb_philo < 1 || data->nb_philo > 200)
 		return (false);
+	memory_allocation(data, data->nb_philo);
 	data->time_to_die = ft_atoi_safe(argv[2]);
 	data->time_to_eat = ft_atoi_safe(argv[3]);
 	data->time_to_sleep = ft_atoi_safe(argv[4]);
 	data->must_eat = -1;
-	data->dead = false;
 	if (argc == 6)
 		data->must_eat = ft_atoi_safe(argv[5]);
 	return (true);
@@ -48,19 +48,22 @@ bool	init_threads(t_data *data)
 
 	i = 0;
 	data->all_ready = false;
+	data->start_time = time_in_ms();
 	while (i < data->nb_philo)
 	{
 		data->philos[i].id = i + 1;
 		data->philos[i].data = data;
-		// data->philos[i].last_meal_time = data->start_time;
 		data->philos[i].meals_eaten = 0;
+		data->philos[i].last_meal_time = time_in_ms();
 		if (pthread_create(&data->threads[i], NULL,
-				eat_sleep_think, &data->philos[i]) != 0)
+			eat_sleep_think, &data->philos[i]) != 0)
 			return (false);
 		i++;
 	}
-	data->start_time = time_in_ms();
+	pthread_mutex_lock(&data->ready_mutex);
+	// data->start_time = time_in_ms();
 	data->all_ready = true;
+	pthread_mutex_unlock(&data->ready_mutex);
 	return (true);
 }
 
@@ -97,8 +100,9 @@ bool	init_forks(t_data *data)
 			return (false);
 		}
 		i++;
+		data->forks_mx_count++;
 	}
-	// printf("forks init\n");
+	printf("forks init\n");
 	return (true);
 }
 
@@ -122,38 +126,29 @@ bool	init_meals(t_data *data)
 			return (false);
 		}
 		i++;
+		data->meal_mx_count++;
 	}
-	// printf("meals init\n");
+	printf("meals init\n");
 	return (true);
 }
 
+//rewrite this cleanly? make sure ready mutex gets cleaned if smth goes wrong
 bool	init_mutexes(t_data *data)
 {
-	int	i;
-
-	i = 0;
+	if (pthread_mutex_init(&data->ready_mutex, NULL) != 0)
+		return (destroy_mutexes(data), false);
+	data->ready_mx_init = true;
 	if (pthread_mutex_init(&data->dead_mutex, NULL) != 0)
-		return (false);
+		return (destroy_mutexes(data), false);
+	data->dead_mx_init = true;
 	if (pthread_mutex_init(&data->print_mutex, NULL) != 0)
-		return (pthread_mutex_destroy(&data->dead_mutex), false);
+		return (destroy_mutexes(data), false);
+	data->print_mx_init = true;
 	if (!init_forks(data))
-	{
-		pthread_mutex_destroy(&data->dead_mutex);
-		pthread_mutex_destroy(&data->print_mutex);
-		return (false);
-	}
+		return (destroy_mutexes(data), false);
 	if (!init_meals(data))
-	{
-		pthread_mutex_destroy(&data->dead_mutex);
-		pthread_mutex_destroy(&data->print_mutex);
-		while (i < data->nb_philo)
-		{
-			pthread_mutex_destroy(&data->forks[i]);
-			i++;
-		}
-		return (false);
-	}
-	// printf("mutexes init\n");
+		return (destroy_mutexes(data), false);
+	printf("mutexes init\n");
 	return (true);
 }
 
@@ -166,14 +161,20 @@ bool	init_monitor(t_data *data)
 	return (true);
 }
 
-bool	memory_allocation(t_data *data)
+bool	memory_allocation(t_data *data, int philo_count)
 {
-	printf("Num of philos: %d.\n", data->nb_philo);
-	data->forks = malloc(sizeof(pthread_mutex_t) * data->nb_philo);
-	data->threads = malloc(sizeof(pthread_t) * data->nb_philo);
-	data->philos = malloc (sizeof(t_philo) * data->nb_philo);
+	int	nb_philo;
+
+	nb_philo = philo_count;
+	memset(data, 0, sizeof(t_data));
+	data->nb_philo = nb_philo;
+	data->forks = malloc(sizeof(pthread_mutex_t) * nb_philo);
+	data->threads = malloc(sizeof(pthread_t) * nb_philo);
+	data->philos = malloc (sizeof(t_philo) * nb_philo);
 	if (!data->forks || !data->threads || !data->philos)
 		return (printf("mem fail\n"), free_all_data(data), false);
+	memset(data->philos, 0, sizeof(t_philo) * nb_philo);
+	printf("Num of philos: %d.\n", data->nb_philo);
 	return (true);
 }
 
