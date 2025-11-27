@@ -61,7 +61,13 @@ bool	init_threads(t_data *data)
 		i++;
 	}
 	pthread_mutex_lock(&data->ready_mutex);
-	// data->start_time = time_in_ms();
+	data->start_time = time_in_ms();
+	i = 0;
+	while (i < data->nb_philo)
+	{
+		data->philos[i].last_meal_time = data->start_time;
+		i++;
+	}
 	data->all_ready = true;
 	pthread_mutex_unlock(&data->ready_mutex);
 	return (true);
@@ -102,7 +108,7 @@ bool	init_forks(t_data *data)
 		i++;
 		data->forks_mx_count++;
 	}
-	printf("forks init\n");
+	// printf("forks init\n");
 	return (true);
 }
 
@@ -128,7 +134,7 @@ bool	init_meals(t_data *data)
 		i++;
 		data->meal_mx_count++;
 	}
-	printf("meals init\n");
+	// printf("meals init\n");
 	return (true);
 }
 
@@ -148,7 +154,7 @@ bool	init_mutexes(t_data *data)
 		return (destroy_mutexes(data), false);
 	if (!init_meals(data))
 		return (destroy_mutexes(data), false);
-	printf("mutexes init\n");
+	// printf("mutexes init\n");
 	return (true);
 }
 

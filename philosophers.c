@@ -83,12 +83,14 @@ void	philo_eat(t_philo *philo)
 		pthread_mutex_lock(&philo->data->forks[right]);
 		print_status(philo, " has taken a fork");
 	}
-	print_status(philo, " is eating");
 	pthread_mutex_lock(&philo->meal_mutex);
+	// philo->last_meal_time = time_in_ms() + philo->data->time_to_eat;
+	philo->last_meal_time = time_in_ms();
 	philo->meals_eaten++;
+	pthread_mutex_unlock(&philo->meal_mutex);
+	print_status(philo, " is eating");
 	usleep(philo->data->time_to_eat * 1000);
 	philo->last_meal_time = time_in_ms();
-	pthread_mutex_unlock(&philo->meal_mutex);
 	pthread_mutex_unlock(&philo->data->forks[left]);
 	pthread_mutex_unlock(&philo->data->forks[right]);
 }
