@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:37:06 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/25 14:07:02 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/11/28 14:44:51 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,14 +34,8 @@ void	*monitor(void *arg)
 	}
 	while (1)
 	{
-		pthread_mutex_lock(&data->dead_mutex);
-		if (data->dead)
-		{
-			pthread_mutex_unlock(&data->dead_mutex);
+		if (!check_if_alive(data))
 			return (NULL);
-		}
-		pthread_mutex_unlock(&data->dead_mutex);
-
 		i = 0;
 		all_eaten = 0;
 		while (i < data->nb_philo)
@@ -59,7 +53,6 @@ void	*monitor(void *arg)
 			pthread_mutex_unlock(&data->philos[i].meal_mutex);
 			i++;
 		}
-
 		if (data->must_eat > 0 && all_eaten == data->nb_philo)
 		{
 			pthread_mutex_lock(&data->dead_mutex);
@@ -67,7 +60,7 @@ void	*monitor(void *arg)
 			pthread_mutex_unlock(&data->dead_mutex);
 			return (NULL);
 		}
-		usleep(100); // Small delay to prevent busy-waiting
+		usleep(100);
 	}
 	return (NULL);
 }
