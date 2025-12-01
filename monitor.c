@@ -60,7 +60,7 @@ void	*monitor(void *arg)
 			pthread_mutex_unlock(&data->dead_mutex);
 			return (NULL);
 		}
-		usleep(100);
+		usleep(50);
 	}
 	return (NULL);
 }
