@@ -6,17 +6,66 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/14 17:25:13 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/14 17:27:37 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/04 16:17:06 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philosophers.h"
 
-//needs to be protected against undefined behaviour
+bool	init_meals(t_data *data)
+{
+	int				i;
+	int				j;
+
+	i = 0;
+	j = 0;
+	while (i < data->nb_philo)
+	{
+		if (pthread_mutex_init(&data->philos[i].meal_mutex, NULL) != 0)
+		{
+			while (j < i)
+			{
+				pthread_mutex_destroy(&data->philos[j].meal_mutex);
+				j++;
+			}
+			free_all_data(data);
+			return (false);
+		}
+		i++;
+		data->meal_mx_count++;
+	}
+	return (true);
+}
+
+bool	init_forks(t_data *data)
+{
+	int				i;
+	int				j;
+
+	i = 0;
+	j = 0;
+	while (i < data->nb_philo)
+	{
+		if (pthread_mutex_init(&data->forks[i], NULL) != 0)
+		{
+			while (j < i)
+			{
+				pthread_mutex_destroy(&data->forks[j]);
+				j++;
+			}
+			free_all_data(data);
+			return (false);
+		}
+		i++;
+		data->forks_mx_count++;
+	}
+	return (true);
+}
+
 void	destroy_mutexes(t_data *data)
 {
 	int	i;
-	int j;
+	int	j;
 
 	i = 0;
 	j = 0;
@@ -36,4 +85,22 @@ void	destroy_mutexes(t_data *data)
 		pthread_mutex_destroy(&data->philos[j].meal_mutex);
 		j++;
 	}
+}
+
+bool	init_mutexes(t_data *data)
+{
+	if (pthread_mutex_init(&data->ready_mutex, NULL) != 0)
+		return (destroy_mutexes(data), false);
+	data->ready_mx_init = true;
+	if (pthread_mutex_init(&data->dead_mutex, NULL) != 0)
+		return (destroy_mutexes(data), false);
+	data->dead_mx_init = true;
+	if (pthread_mutex_init(&data->print_mutex, NULL) != 0)
+		return (destroy_mutexes(data), false);
+	data->print_mx_init = true;
+	if (!init_forks(data))
+		return (destroy_mutexes(data), false);
+	if (!init_meals(data))
+		return (destroy_mutexes(data), false);
+	return (true);
 }

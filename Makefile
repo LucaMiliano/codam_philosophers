@@ -1,14 +1,19 @@
 NAME = philosophers
 
 CC = cc
+
+# flags for debugging:
 # CFLAGS = -Wall -Wextra -Werror -g -fsanitize=thread
-CFLAGS = -Wall -Wextra -Werror -g
+
+CFLAGS = -Wall -Wextra -Werror
 
 SRCS =	philosophers.c \
-		init.c \
+		philo_actions.c \
+		threads.c \
 		monitor.c \
 		mutexes.c \
 		utils.c \
+		libft_functions.c \
 
 OBJS = $(SRCS:.c=.o)
 

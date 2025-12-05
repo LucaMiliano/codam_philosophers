@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:05:42 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/28 15:52:13 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/04 16:16:20 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,5 +80,7 @@ bool	check_if_alive(t_data *data);
 void	pick_up_forks(t_philo *philo, int left, int right);
 int		ft_strncmp(const char *s1, const char *s2, size_t n);
 void	precise_sleep(t_philo *philo, long duration_ms);
+bool	ready_to_go(t_philo *philo);
+void	set_ready(t_data *data);
 
 #endif

@@ -6,11 +6,9 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:04:41 by lpieck            #+#    #+#             */
-/*   Updated: 2025/11/28 17:11:30 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/05 17:09:06 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
-//TODO: clean up functions
 
 #include "philosophers.h"
 
@@ -29,14 +27,32 @@ int	main(int argc, char **argv)
 	return (0);
 }
 
-bool	ready_to_go(t_philo *philo)
+bool	init_args(int argc, char **argv, t_data *data)
 {
-	bool	ready;
+	int	i;
 
-	pthread_mutex_lock(&philo->data->ready_mutex);
-	ready = philo->data->all_ready;
-	pthread_mutex_unlock(&philo->data->ready_mutex);
-	return (ready);
+	i = 1;
+	if (argc < 5 || argc > 6)
+		return (printf("Unable to run, wrong amount of args.\n"), false);
+	while (i < argc)
+	{
+		if (!ft_isdigit(argv[i]))
+			return (printf("Only (positive) nums are valid inputs.\n"), false);
+		if (ft_atoi_safe(argv[i]) > INT_MAX)
+			return (printf("Keep input under INT_MAX.\n"), false);
+		i++;
+	}
+	data->nb_philo = ft_atoi_safe(argv[1]);
+	if (data->nb_philo < 1 || data->nb_philo > 200)
+		return (false);
+	memory_allocation(data, data->nb_philo);
+	data->time_to_die = ft_atoi_safe(argv[2]);
+	data->time_to_eat = ft_atoi_safe(argv[3]);
+	data->time_to_sleep = ft_atoi_safe(argv[4]);
+	data->must_eat = -1;
+	if (argc == 6)
+		data->must_eat = ft_atoi_safe(argv[5]);
+	return (true);
 }
 
 void	*eat_sleep_think(void *arg)
@@ -45,15 +61,15 @@ void	*eat_sleep_think(void *arg)
 
 	philo = (t_philo *)arg;
 	while (!ready_to_go(philo))
-		usleep(100);
+		usleep(50);
 	if (philo->id % 2 == 0)
-		usleep(25000);
+		precise_sleep(philo, philo->data->time_to_eat);
 	else if (philo->id == philo->data->nb_philo && philo->id % 2 == 1)
-		usleep(55000);
-	while (1)
+		precise_sleep(philo, philo->data->time_to_eat - 5000);
+	while (check_if_alive(philo->data))
 	{
-		if (!check_if_alive(philo->data))
-			break ;
+		// if (!check_if_alive(philo->data))
+		// 	break ;
 		philo_eat(philo);
 		philo_sleep(philo);
 		philo_think(philo);
@@ -61,66 +77,18 @@ void	*eat_sleep_think(void *arg)
 	return (NULL);
 }
 
-void	philo_eat(t_philo *philo)
+bool	memory_allocation(t_data *data, int philo_count)
 {
-	int	left;
-	int	right;
+	int	nb_philo;
 
-	left = philo->id % philo->data->nb_philo;
-	right = philo->id - 1;
-	pick_up_forks(philo, left, right);
-	pthread_mutex_lock(&philo->meal_mutex);
-	philo->last_meal_time = time_in_ms();
-	philo->meals_eaten++;
-	pthread_mutex_unlock(&philo->meal_mutex);
-	print_status(philo, " is eating");
-	precise_sleep(philo, philo->data->time_to_eat);
-	if (philo->data->nb_philo != 1)
-	{
-		pthread_mutex_unlock(&philo->data->forks[left]);
-		pthread_mutex_unlock(&philo->data->forks[right]);
-	}
-}
-
-void	philo_sleep(t_philo *philo)
-{
-	print_status(philo, " is sleeping");
-	precise_sleep(philo, philo->data->time_to_sleep);
-}
-
-void	philo_think(t_philo *philo)
-{
-	print_status(philo, " is thinking");
-	// if (philo->id % 2 == 0)
-	// 	usleep(2000);
-	// if (philo->id == philo->data->nb_philo && philo->id % 2 == 1)
-	// 	usleep(1500);
-}
-
-void	pick_up_forks(t_philo *philo, int left, int right)
-{
-	// if (left > right)
-	// {
-	pthread_mutex_lock(&philo->data->forks[right]);
-	print_status(philo, " has taken a fork");
-	while (philo->data->nb_philo == 1)
-	{
-		usleep(50);
-		if (!check_if_alive(philo->data))
-		{
-			pthread_mutex_unlock(&philo->data->forks[right]);
-			return ;
-		}
-	}
-	pthread_mutex_lock(&philo->data->forks[left]);
-	print_status(philo, " has taken a fork");
-	// }
-	// else
-	// {
-	// 	pthread_mutex_lock(&philo->data->forks[left]);
-	// 	print_status(philo, " has taken a fork");
-	// 	}
-	// 	pthread_mutex_lock(&philo->data->forks[right]);
-	// 	print_status(philo, " has taken a fork");
-	// }
+	nb_philo = philo_count;
+	memset(data, 0, sizeof(t_data));
+	data->nb_philo = nb_philo;
+	data->forks = malloc(sizeof(pthread_mutex_t) * nb_philo);
+	data->threads = malloc(sizeof(pthread_t) * nb_philo);
+	data->philos = malloc (sizeof(t_philo) * nb_philo);
+	if (!data->forks || !data->threads || !data->philos)
+		return (printf("mem error\n"), free_all_data(data), false);
+	memset(data->philos, 0, sizeof(t_philo) * nb_philo);
+	return (true);
 }
