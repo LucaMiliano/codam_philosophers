@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/14 17:25:13 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/04 16:17:06 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/18 16:54:10 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ bool	init_meals(t_data *data)
 
 	i = 0;
 	j = 0;
+	data->meal_mx_count = 0;
 	while (i < data->nb_philo)
 	{
 		if (pthread_mutex_init(&data->philos[i].meal_mutex, NULL) != 0)
@@ -28,7 +29,6 @@ bool	init_meals(t_data *data)
 				pthread_mutex_destroy(&data->philos[j].meal_mutex);
 				j++;
 			}
-			free_all_data(data);
 			return (false);
 		}
 		i++;
@@ -44,6 +44,7 @@ bool	init_forks(t_data *data)
 
 	i = 0;
 	j = 0;
+	data->forks_mx_count = 0;
 	while (i < data->nb_philo)
 	{
 		if (pthread_mutex_init(&data->forks[i], NULL) != 0)
@@ -53,7 +54,6 @@ bool	init_forks(t_data *data)
 				pthread_mutex_destroy(&data->forks[j]);
 				j++;
 			}
-			free_all_data(data);
 			return (false);
 		}
 		i++;

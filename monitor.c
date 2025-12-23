@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/12 13:37:06 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/05 17:00:30 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/23 12:37:22 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,9 +19,7 @@ void	philo_kill(t_philo *philo, t_data *data)
 	{
 		data->dead = true;
 		pthread_mutex_unlock(&data->dead_mutex);
-		pthread_mutex_lock(&data->print_mutex);
-		printf("%ld %d died\n", time_in_ms() - data->start_time, philo->id);
-		pthread_mutex_unlock(&data->print_mutex);
+		print_status(philo, "died");
 		return ;
 	}
 	pthread_mutex_unlock(&data->dead_mutex);
@@ -96,7 +94,7 @@ void	*monitor(void *arg)
 			pthread_mutex_unlock(&data->dead_mutex);
 			return (NULL);
 		}
-		usleep(500);
+		usleep(100);
 	}
 	return (NULL);
 }

@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 14:09:56 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/04 14:37:48 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/18 16:40:41 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,13 @@ bool	init_threads(t_data *data)
 		data->philos[i].last_meal_time = time_in_ms();
 		if (pthread_create(&data->threads[i], NULL,
 				eat_sleep_think, &data->philos[i]) != 0)
-			return (false);
+			break ;
 		i++;
+	}
+	if (i < data->nb_philo)
+	{
+		end_threads(data, i);
+		return (false);
 	}
 	set_ready(data);
 	return (true);
@@ -61,12 +66,27 @@ void	join_threads(t_data *data)
 		pthread_join(data->threads[i], NULL);
 		i++;
 	}
-	pthread_join(data->monitor, NULL);
+	if (data->monitor_set == true)
+		pthread_join(data->monitor, NULL);
 }
 
 bool	init_monitor(t_data *data)
 {
 	if ((pthread_create(&data->monitor, NULL, monitor, data)) != 0)
+	{
+		data->dead = true;
 		return (false);
+	}
+	data->monitor_set = true;
 	return (true);
+}
+
+void	end_threads(t_data *data, int i)
+{
+	data->dead = true;
+	while (i >= 0)
+	{
+		pthread_join(data->threads[i], NULL);
+		i--;
+	}
 }

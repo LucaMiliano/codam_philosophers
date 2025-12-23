@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:05:42 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/04 16:16:20 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/18 16:37:48 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ typedef struct s_data
 	bool			all_ready;
 	long			start_time;
 	t_philo			*philos;
+	int				philo_set_amt;
 	pthread_mutex_t	*forks;
 	int				forks_mx_count;
 	pthread_t		*threads;
@@ -45,6 +46,7 @@ typedef struct s_data
 	pthread_mutex_t	ready_mutex;
 	bool			ready_mx_init;
 	pthread_t		monitor;
+	bool			monitor_set;
 	int				meal_mx_count;
 }	t_data;
 
@@ -82,5 +84,6 @@ int		ft_strncmp(const char *s1, const char *s2, size_t n);
 void	precise_sleep(t_philo *philo, long duration_ms);
 bool	ready_to_go(t_philo *philo);
 void	set_ready(t_data *data);
+void	end_threads(t_data *data, int i);
 
 #endif

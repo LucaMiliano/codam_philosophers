@@ -6,7 +6,7 @@
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/12/04 14:17:17 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/05 17:00:09 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/23 14:12:10 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void	philo_eat(t_philo *philo)
 	philo->last_meal_time = time_in_ms();
 	philo->meals_eaten++;
 	pthread_mutex_unlock(&philo->meal_mutex);
-	print_status(philo, " is eating");
+	print_status(philo, "is eating");
 	precise_sleep(philo, philo->data->time_to_eat);
 	if (philo->data->nb_philo != 1)
 	{
@@ -35,27 +35,23 @@ void	philo_eat(t_philo *philo)
 
 void	philo_sleep(t_philo *philo)
 {
-	print_status(philo, " is sleeping");
+	print_status(philo, "is sleeping");
 	precise_sleep(philo, philo->data->time_to_sleep);
 }
 
 void	philo_think(t_philo *philo)
 {
-	long	think_time;
+	long	thinktime;
 
-	print_status(philo, " is thinking");
+	print_status(philo, "is thinking");
 	if (philo->data->nb_philo % 2 != 0)
 	{
-		// if (philo->id % 2 != 0)
-		// 	usleep(500);
-		// else if (philo->id == philo->data->nb_philo)
-		// 	usleep(750);
-		think_time = (philo->data->time_to_eat * 2 - philo->data->time_to_sleep);
-        if (think_time < 0)
-            think_time = 0;
-        think_time = think_time * 1000 / philo->data->nb_philo;
-        if (think_time > 0)
-            usleep(think_time);
+		thinktime = (philo->data->time_to_eat * 2 - philo->data->time_to_sleep);
+		if (thinktime < 0)
+			thinktime = 0;
+		thinktime = thinktime * 1000 / philo->data->nb_philo;
+		if (thinktime > 0)
+			precise_sleep(philo, thinktime / 1000);
 	}
 }
 
@@ -63,19 +59,17 @@ void	pick_up_forks(t_philo *philo, int left, int right)
 {
 	if (philo->data->nb_philo > 1 && philo->id == philo->data->nb_philo)
 	{
-		// usleep(500);
 		pthread_mutex_lock(&philo->data->forks[left]);
-		print_status(philo, " has taken a fork");
+		print_status(philo, "has taken a fork");
 		pthread_mutex_lock(&philo->data->forks[right]);
-		print_status(philo, " has taken a fork");
+		print_status(philo, "has taken a fork");
 	}
 	else
 	{
 		pthread_mutex_lock(&philo->data->forks[right]);
-		print_status(philo, " has taken a fork");
+		print_status(philo, "has taken a fork");
 		while (philo->data->nb_philo == 1)
 		{
-			// usleep(500);
 			if (!check_if_alive(philo->data))
 			{
 				pthread_mutex_unlock(&philo->data->forks[right]);
@@ -83,7 +77,7 @@ void	pick_up_forks(t_philo *philo, int left, int right)
 			}
 		}
 		pthread_mutex_lock(&philo->data->forks[left]);
-		print_status(philo, " has taken a fork");
+		print_status(philo, "has taken a fork");
 	}
 }
 
@@ -98,8 +92,10 @@ void	precise_sleep(t_philo *philo, long duration_ms)
 		elapsed = time_in_ms() - start;
 		if (elapsed >= duration_ms)
 			break ;
-		if (!check_if_alive(philo->data))
+		if (check_if_alive(philo->data) == false)
+		{
 			break ;
+		}
 		if (duration_ms - elapsed > 20)
 			usleep(10000);
 		else if (duration_ms - elapsed > 5)

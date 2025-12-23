@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   philosophers.c                                     :+:      :+:    :+:   */
+/*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lpieck <lpieck@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/11/07 13:04:41 by lpieck            #+#    #+#             */
-/*   Updated: 2025/12/05 17:09:06 by lpieck           ###   ########.fr       */
+/*   Updated: 2025/12/23 11:30:02 by lpieck           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,9 +18,17 @@ int	main(int argc, char **argv)
 
 	if (!init_args(argc, argv, &data))
 		return (1);
-	init_mutexes(&data);
-	init_threads(&data);
-	init_monitor(&data);
+	if (!init_mutexes(&data))
+		return (free_all_data(&data), 1);
+	if (!init_threads(&data))
+		return (destroy_mutexes(&data), free_all_data(&data), 1);
+	if (!init_monitor(&data))
+	{
+		join_threads(&data);
+		destroy_mutexes(&data);
+		free_all_data(&data);
+		return (1);
+	}
 	join_threads(&data);
 	destroy_mutexes(&data);
 	free_all_data(&data);
@@ -45,7 +53,8 @@ bool	init_args(int argc, char **argv, t_data *data)
 	data->nb_philo = ft_atoi_safe(argv[1]);
 	if (data->nb_philo < 1 || data->nb_philo > 200)
 		return (false);
-	memory_allocation(data, data->nb_philo);
+	if (!memory_allocation(data, data->nb_philo))
+		return (false);
 	data->time_to_die = ft_atoi_safe(argv[2]);
 	data->time_to_eat = ft_atoi_safe(argv[3]);
 	data->time_to_sleep = ft_atoi_safe(argv[4]);
@@ -61,15 +70,17 @@ void	*eat_sleep_think(void *arg)
 
 	philo = (t_philo *)arg;
 	while (!ready_to_go(philo))
+	{
+		if (!check_if_alive(philo->data))
+			return (NULL);
 		usleep(50);
+	}
 	if (philo->id % 2 == 0)
 		precise_sleep(philo, philo->data->time_to_eat);
 	else if (philo->id == philo->data->nb_philo && philo->id % 2 == 1)
 		precise_sleep(philo, philo->data->time_to_eat - 5000);
 	while (check_if_alive(philo->data))
 	{
-		// if (!check_if_alive(philo->data))
-		// 	break ;
 		philo_eat(philo);
 		philo_sleep(philo);
 		philo_think(philo);
@@ -88,7 +99,7 @@ bool	memory_allocation(t_data *data, int philo_count)
 	data->threads = malloc(sizeof(pthread_t) * nb_philo);
 	data->philos = malloc (sizeof(t_philo) * nb_philo);
 	if (!data->forks || !data->threads || !data->philos)
-		return (printf("mem error\n"), free_all_data(data), false);
+		return (printf("Malloc failure\n"), free_all_data(data), false);
 	memset(data->philos, 0, sizeof(t_philo) * nb_philo);
 	return (true);
 }

@@ -1,13 +1,11 @@
-NAME = philosophers
+NAME = philo
 
 CC = cc
 
 # flags for debugging:
-# CFLAGS = -Wall -Wextra -Werror -g -fsanitize=thread
-
 CFLAGS = -Wall -Wextra -Werror
 
-SRCS =	philosophers.c \
+SRCS =	main.c \
 		philo_actions.c \
 		threads.c \
 		monitor.c \
